@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام إدارة الفرق والمعدات - نسخة الجوال</title>
+    <style>
+        /* =========================================
+           متغيرات الألوان والتصميم الأساسية
+           ========================================= */
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #151b2b;
+            --bg-hover: #1e2638;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #0ea5e9;
+            --accent: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --orange: #f97316;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent; /* إلغاء وميض اللمس في الجوال */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            direction: rtl;
+            line-height: 1.6;
+        }
+
+        /* تحسين شريط التمرير */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 10px; }
+
+        /* =========================================
+           تنسيقات الصفحات والتنقل
+           ========================================= */
+        .page { 
+            display: none; 
+            min-height: 100vh;
+            width: 100%;
+            padding: 15px;
+        }
+        .page.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+           1. صفحة تسجيل الدخول
+           ========================================= */
+        #login-page { 
+            display: none;
+            justify-content: center; 
+            align-items: center;
+            background: radial-gradient(circle at top, #1a2344, var(--bg-main));
+        }
+        #login-page.active { display: flex; }
+
+        .login-container { 
+            background: var(--bg-card);
+            padding: 30px; 
+            border-radius: 24px; 
+            width: 100%;
+            max-width: 350px;
+            text-align: center; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .brand h1 { font-size: 1.4rem; margin-bottom: 20px; color: var(--primary); }
+        .input-field input { 
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; 
+            border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); 
+            color: white; font-size: 1rem; outline: none;
+        }
+
+        .btn-primary { 
+            width: 100%; padding: 15px; background: var(--primary); 
+            border: none; color: white; border-radius: 12px; font-weight: bold;
+            cursor: pointer; font-size: 1rem; margin-top: 10px;
+        }
+
+        /* =========================================
+           2. لوحة التحكم (Dashboard)
+           ========================================= */
+        .main-layout { 
+            display: flex; 
+            flex-direction: column; /* عمودي للجوال */
+            gap: 20px;
+        }
+
+        .section-title { font-size: 1.3rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+
+        .eng-item { 
+            background: var(--bg-card); padding: 15px; border-radius: 16px; 
+            margin-bottom: 12px; border: 1px solid var(--border-color);
+            display: flex; align-items: center; gap: 15px;
+        }
+
+        .avatar { 
+            width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold;
+        }
+
+        .tag-mini { 
+            background: rgba(99, 102, 241, 0.1); color: #818cf8; 
+            padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; 
+            margin: 2px; display: inline-block; border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        /* قسم المعدات المتاحة */
+        .inventory-card { 
+            background: var(--bg-card); border-radius: 20px; 
+            padding: 20px; border: 1px solid var(--border-color);
+        }
+
+        .pool-category { margin-bottom: 15px; }
+        .pool-items-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .pool-item { 
+            background: rgba(14, 165, 233, 0.1); color: var(--secondary);
+            padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        /* =========================================
+           3. شاشة الاختيار (Assets Selection)
+           ========================================= */
+        .selection-layout { display: flex; flex-direction: column; }
+        
+        .categories-panel { background: var(--bg-card); padding: 15px; border-radius: 20px; margin-bottom: 20px; }
+        
+        .item-chip { 
+            display: inline-block; padding: 12px 15px; margin: 5px; 
+            background: var(--bg-main); border: 1px solid var(--border-color); 
+            border-radius: 10px; font-size: 0.85rem; cursor: pointer;
+        }
+        .item-chip.selected { 
+            background: var(--primary); border-color: var(--primary); color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        .item-chip.disabled { opacity: 0.2; pointer-events: none; border-style: dashed; }
+
+        .summary-content { 
+            text-align: center; background: var(--bg-card); 
+            padding: 25px; border-radius: 20px; border: 1px solid var(--border-color);
+        }
+
+        .btn-save { 
+            width: 100%; padding: 16px; background: var(--accent); 
+            border: none; color: white; border-radius: 12px; font-weight: bold; font-size: 1.1rem;
+            margin-top: 20px;
+        }
+
+        /* التجاوب مع الشاشات الكبيرة (Desktop) */
+        @media (min-width: 769px) {
+            .main-layout { flex-direction: row; align-items: flex-start; }
+            .engineers-column { flex: 1.5; }
+            .inventory-column { flex: 1; position: sticky; top: 20px; }
+            .selection-layout { flex-direction: row; gap: 20px; }
+            .categories-panel { flex: 1.5; height: 85vh; overflow-y: auto; }
+            .summary-panel { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="login-page" class="page active">
+        <div class="login-container">
+            <div class="brand">
+                <h1 style="font-size: 2rem;">KENAN</h1>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">نظام إدارة الفرق الذكي</p>
+            </div>
+            <div class="input-field">
+                <input type="text" id="login-user" placeholder="اسم المستخدم" inputmode="numeric">
+            </div>
+            <div class="input-field">
+                <input type="password" id="login-pass" placeholder="كلمة المرور" inputmode="numeric">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">دخول آمن</button>
+            <p id="error-txt" style="display:none; color: #ff6b6b; margin-top: 15px; font-size: 0.9rem;">بيانات الدخول غير صحيحة</p>
+        </div>
+    </section>
+
+    <section id="engineers-page" class="page">
+        <div class="main-layout">
+            <div class="engineers-column">
+                <h2 class="section-title">👤 المهندسون المسؤولون</h2>
+                <div id="eng-list">
+                    </div>
+                <button onclick="resetAllData()" style="width:100%; margin-top:10px; background:none; border:1px solid #333; color:#666; padding:10px; border-radius:10px; font-size: 0.8rem;">إعادة ضبط النظام بالكامل</button>
+            </div>
+
+            <div class="inventory-column">
+                <div class="inventory-card">
+                    <h3 style="margin-bottom:15px; font-size: 1rem; color: var(--secondary);">📦 المعدات المتاحة حالياً</h3>
+                    <div id="available-pool"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="assets-page" class="page">
+        <div class="selection-layout">
+            <div class="categories-panel">
+                <h3 style="margin-bottom:15px;">تخصيص لـ: <span id="active-eng" style="color: var(--orange);"></span></h3>
+                <div id="playlists-container"></div>
+            </div>
+            <div class="summary-panel">
+                <div class="summary-content">
+                    <h3 style="margin-bottom:15px;">ملخص الاختيار</h3>
+                    <div id="selected-items-list" style="min-height: 50px; margin-bottom: 15px;"></div>
+                    <button class="btn-save" onclick="confirmSelection()">اعتماد وحفظ التغييرات</button>
+                    <button onclick="goToPage('engineers-page')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer;">← العودة للخلف</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const dataStore = {
+            "فرق الحفر والتمديد": ["عمر الطيب", "اشرف", "كرم", "ممدوح", "علاء مرسي", "جامشيد", "كامل", "جمال", "سيد زين", "كنان"],
+            "فرق الترمنيشن": ["راجا", "اماندو", "بارديب", "جلين", "جيريكو", "كليان", "محمد احمد", "مانيكندن", "سوريش", "جونس"],
+            "فرق الهوائي": ["بالا", "سيلفم", "فانكتش", "رافي", "افتخار", "الجون"],
+            "الجي سي بيهات": ["سكندر", "ارفيند", "ميراج", "بالا", "منتاج", "افضل", "رقيب", "زاهد", "يوداف", "فاروق", "امتياز"],
+            "الكرينات": ["معصوم", "سونيل", "غلام", "محمد علي", "قمر الدين"],
+            "البوبكتات": ["عاشق", "نصر الله", "ديل سعد", "اميرول", "فينود"]
+        };
+
+        const engineerNames = ["عمرو", "أحمد", "حازم", "صقر", "محمد", "علاء"];
+        let selections = JSON.parse(localStorage.getItem('jcb_selections')) || {};
+        
+        // تأكد من تهيئة كل المهندسين
+        engineerNames.forEach(name => { if(!selections[name]) selections[name] = []; });
+
+        let currentEng = "";
+        let tempSelection = [];
+
+        window.onload = () => {
+            renderEngineerList();
+            updateAvailablePool();
+        };
+
+        function handleLogin() {
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+            if (u === "2" && p === "2") { goToPage('engineers-page'); } 
+            else { document.getElementById('error-txt').style.display = "block"; }
+        }
+
+        function renderEngineerList() {
+            const list = document.getElementById('eng-list');
+            list.innerHTML = engineerNames.map(name => `
+                <div class="eng-item" onclick="openPanel('${name}')">
+                    <div class="avatar">${name[0]}</div>
+                    <div style="flex:1">
+                        <h3 style="font-size:1rem">${name}</h3>
+                        <div id="label-${name}" class="tag-container">
+                            ${selections[name].length > 0 
+                                ? selections[name].map(i => `<span class="tag-mini">${i}</span>`).join('') 
+                                : '<span style="font-size:0.8rem; color:#555;">لم يتم التخصيص بعد</span>'}
+                        </div>
+                    </div>
+                    <span style="color:var(--primary); font-size:1.2rem">←</span>
+                </div>
+            `).join('');
+        }
+
+        function updateAvailablePool() {
+            const pool = document.getElementById('available-pool');
+            pool.innerHTML = "";
+            const allReserved = Object.values(selections).flat();
+
+            for (const [category, items] of Object.entries(dataStore)) {
+                const available = items.filter(item => !allReserved.includes(item));
+                if (available.length > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'pool-category';
+                    div.innerHTML = `
+                        <h4 style="font-size:0.8rem; color:var(--orange)">${category}</h4>
+                        <div class="pool-items-group">
+                            ${available.map(item => `<span class="pool-item">${item}</span>`).join('')}
+                        </div>
+                    `;
+                    pool.appendChild(div);
+                }
+            }
+        }
+
+        function openPanel(name) {
+            currentEng = name;
+            tempSelection = [...selections[name]];
+            document.getElementById('active-eng').innerText = name;
+            renderPlaylists();
+            updatePreview();
+            goToPage('assets-page');
+            window.scrollTo(0,0);
+        }
+
+        function renderPlaylists() {
+            const container = document.getElementById('playlists-container');
+            container.innerHTML = "";
+            const reservedByOthers = Object.entries(selections)
+                .filter(([n]) => n !== currentEng)
+                .flatMap(([, items]) => items);
+
+            for (const [cat, items] of Object.entries(dataStore)) {
+                const div = document.createElement('div');
+                div.innerHTML = `<h4 style="color:var(--secondary); margin:15px 0 10px 0; font-size:0.9rem;">${cat}</h4>`;
+                items.forEach(item => {
+                    const isReserved = reservedByOthers.includes(item);
+                    const isSelected = tempSelection.includes(item);
+                    const chip = document.createElement('span');
+                    chip.className = `item-chip ${isReserved ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`;
+                    chip.innerText = item;
+                    if (!isReserved) {
+                        chip.onclick = () => {
+                            if(tempSelection.includes(item)) tempSelection = tempSelection.filter(i => i !== item);
+                            else tempSelection.push(item);
+                            renderPlaylists();
+                            updatePreview();
+                        };
+                    }
+                    div.appendChild(chip);
+                });
+                container.appendChild(div);
+            }
+        }
+
+        function updatePreview() {
+            const div = document.getElementById('selected-items-list');
+            div.innerHTML = tempSelection.length > 0 
+                ? tempSelection.map(i => `<span class="tag-mini" style="background:var(--primary); color:white; padding:8px 12px;">${i}</span>`).join('') 
+                : "<p style='color:#555'>لم تختر أي معدات بعد</p>";
+        }
+
+        function confirmSelection() {
+            selections[currentEng] = [...tempSelection];
+            localStorage.setItem('jcb_selections', JSON.stringify(selections));
+            renderEngineerList();
+            updateAvailablePool();
+            goToPage('engineers-page');
+        }
+
+        function goToPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function resetAllData() {
+            if(confirm("هل أنت متأكد من مسح كافة التخصيصات؟")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
