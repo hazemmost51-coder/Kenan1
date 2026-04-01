@@ -363,6 +363,31 @@
                 location.reload();
             }
         }
+        // 1. حط الرابط الجديد هنا
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxaHIWUpJpt9RtiwX9P5k4Z6gvnL9g0MOLwRciObytikfHOkBMB2mLk9Yl4O1q3JKdYew/exec';
+
+async function saveToCloud() {
+    showLoader(true);
+    try {
+        // تعديل الـ Fetch لضمان إرسال البيانات بشكل سليم
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors', // لتجنب مشاكل الحماية بين المواقع
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selections)
+        });
+        
+        // تنبيه بسيط للمستخدم
+        alert("تم الحفظ والمزامنة مع السحابة");
+        await loadFromCloud(); // إعادة تحميل البيانات للتأكد
+        goToPage('engineers-page');
+    } catch (e) { 
+        console.error(e);
+        alert("فشل الحفظ، تأكد من اتصال الإنترنت"); 
+    }
+    showLoader(false);
+}
+
     </script>
 </body>
 </html>
