@@ -363,27 +363,44 @@
                 location.reload();
             }
         }
-        // 1. حط الرابط الجديد هنا
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxaHIWUpJpt9RtiwX9P5k4Z6gvnL9g0MOLwRciObytikfHOkBMB2mLk9Yl4O1q3JKdYew/exec';
+        // تأكد إنك حاطط الرابط الجديد هنا
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwpxhxq2s5LSW40ZFge-0DAWbhOxJ-kI0uP_w32f3dAv8XiHgj3ivXcIw5zcqep1KIH3g/exec';
+
+async function loadFromCloud() {
+    showLoader(true);
+    try {
+        // إضافة طابع زمني منعاً للكاش (عشان يجيب أجدد بيانات)
+        const response = await fetch(`${scriptURL}?t=${new Date().getTime()}`);
+        const data = await response.json();
+        selections = data || {};
+        renderEngineerList();
+        updateAvailablePool();
+    } catch (e) { 
+        console.error("خطأ في التحميل:", e); 
+    }
+    showLoader(false);
+}
 
 async function saveToCloud() {
     showLoader(true);
     try {
-        // تعديل الـ Fetch لضمان إرسال البيانات بشكل سليم
+        // نستخدم URLSearchParams لإرسال البيانات بطريقة مستقرة مع جوجل
         await fetch(scriptURL, {
             method: 'POST',
-            mode: 'no-cors', // لتجنب مشاكل الحماية بين المواقع
-            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors', // ضروري لتجنب مشاكل الـ CORS في المتصفح
             body: JSON.stringify(selections)
         });
-        
-        // تنبيه بسيط للمستخدم
-        alert("تم الحفظ والمزامنة مع السحابة");
-        await loadFromCloud(); // إعادة تحميل البيانات للتأكد
-        goToPage('engineers-page');
+
+        // بما إن no-cors مش بيرجع رد، هننتظر ثانية ونحدث البيانات
+        setTimeout(async () => {
+            await loadFromCloud();
+            goToPage('engineers-page');
+            alert("تم الحفظ والمزامنة بنجاح ✅");
+        }, 1000);
+
     } catch (e) { 
+        alert("حدث خطأ أثناء الحفظ");
         console.error(e);
-        alert("فشل الحفظ، تأكد من اتصال الإنترنت"); 
     }
     showLoader(false);
 }
